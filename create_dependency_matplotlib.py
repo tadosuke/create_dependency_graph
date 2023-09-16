@@ -17,7 +17,7 @@ _COLOR_FIELD = '#80FF00'
 class GraphBuilder:
     """グラフのノードとエッジを追加するクラス"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """コンストラクタ"""
         self.G = nx.DiGraph()
 
@@ -40,42 +40,42 @@ class GraphBuilder:
 class GraphStyler:
     """グラフにスタイルを適用するクラス"""
 
-    def __init__(self, G: nx.DiGraph):
+    def __init__(self, graph: nx.DiGraph) -> None:
         """コンストラクタ"""
-        self.G = G
+        self.graph = graph
 
     def apply_style(self) -> dict:
         """スタイルを適用するメソッド"""
-        return {node: data['color'] for node, data in self.G.nodes(data=True)}
+        return {node: data['color'] for node, data in self.graph.nodes(data=True)}
 
 
 class GraphRenderer:
     """グラフを描画するクラス"""
 
-    def __init__(self, G: nx.DiGraph):
+    def __init__(self, graph: nx.DiGraph) -> None:
         """コンストラクタ"""
-        self.G = G
+        self.graph = graph
 
-    def create_subgraph_for_class(self, class_name: str) -> nx.DiGraph:
+    def _create_subgraph_for_class(self, class_name: str) -> nx.DiGraph:
         sub_nodes = [class_name]
 
         # 直接的な子孫ノード（メソッド、フィールド）を取得
-        descendants = list(self.G.successors(class_name))
+        descendants = list(self.graph.successors(class_name))
         sub_nodes.extend(descendants)
 
         # 子孫ノードから更に繋がる子孫（基本的にフィールド）を取得
         for desc in descendants:
-            sub_descendants = list(self.G.successors(desc))
+            sub_descendants = list(self.graph.successors(desc))
             sub_nodes.extend(sub_descendants)
 
-        return self.G.subgraph(sub_nodes)
+        return self.graph.subgraph(sub_nodes)
 
     def render(self, colors: dict[str, str], class_names: list[str]) -> None:
         """グラフを描画するメソッド"""
         for class_name in class_names:
             plt.figure()
 
-            subG = self.create_subgraph_for_class(class_name)
+            subG = self._create_subgraph_for_class(class_name)
 
             pos = nx.spring_layout(subG)
             nx.draw(subG, pos, with_labels=True, node_color=[colors[n] for n in subG.nodes()])
