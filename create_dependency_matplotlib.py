@@ -12,6 +12,7 @@ import create_dependency
 _COLOR_CLASS = '#FF4040'
 _COLOR_FUNCTION = '#0080FF'
 _COLOR_FIELD = '#80FF00'
+_COLOR_UNUSED = '#808080'
 
 
 class GraphBuilder:
@@ -23,8 +24,14 @@ class GraphBuilder:
 
     def add_nodes_and_edges(self, class_to_func_data: create_dependency.ClassToFuncType) -> None:
         """ノードとエッジを追加するメソッド"""
-        for class_name, func_to_attr in class_to_func_data.items():
+        for class_name, (func_to_attr, unused_vars) in class_to_func_data.items():
             self.graph.add_node(class_name, color=_COLOR_CLASS)
+
+            # 未使用変数を追加
+            for unused_var in unused_vars:
+                full_unused_var_name = f"{unused_var}"
+                self.graph.add_node(full_unused_var_name, color=_COLOR_UNUSED)
+                self.graph.add_edge(class_name, full_unused_var_name)
 
             for func_name, attrs in func_to_attr.items():
                 full_func_name = f"{func_name}"
@@ -93,7 +100,8 @@ class GraphRenderer:
         red_patch = mpatches.Patch(color=_COLOR_CLASS, label='Class')
         blue_patch = mpatches.Patch(color=_COLOR_FUNCTION, label='Function')
         green_patch = mpatches.Patch(color=_COLOR_FIELD, label='Field')
-        plt.legend(handles=[red_patch, blue_patch, green_patch])
+        gray_patch = mpatches.Patch(color=_COLOR_UNUSED, label='UnusedField')
+        plt.legend(handles=[red_patch, blue_patch, green_patch, gray_patch])
 
 
 def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncType) -> None:
