@@ -56,30 +56,51 @@ class GraphRenderer:
         """コンストラクタ"""
         self.G = G
 
-    def render(self, colors: dict) -> None:
+    def create_subgraph_for_class(self, class_name: str) -> nx.DiGraph:
+        sub_nodes = [class_name]
+
+        # 直接的な子孫ノード（メソッド、フィールド）を取得
+        descendants = list(self.G.successors(class_name))
+        sub_nodes.extend(descendants)
+
+        # 子孫ノードから更に繋がる子孫（基本的にフィールド）を取得
+        for desc in descendants:
+            sub_descendants = list(self.G.successors(desc))
+            sub_nodes.extend(sub_descendants)
+
+        return self.G.subgraph(sub_nodes)
+
+    def render(self, colors: dict[str, str], class_names: list[str]) -> None:
         """グラフを描画するメソッド"""
-        pos = nx.spring_layout(self.G)
-        nx.draw(self.G, pos, with_labels=True, node_color=list(colors.values()))
+        for class_name in class_names:
+            plt.figure()
 
-        # 凡例を追加
-        red_patch = mpatches.Patch(color=_COLOR_CLASS, label='Class')
-        blue_patch = mpatches.Patch(color=_COLOR_FUNCTION, label='Function')
-        green_patch = mpatches.Patch(color=_COLOR_FIELD, label='Field')
-        plt.legend(handles=[red_patch, blue_patch, green_patch])
+            subG = self.create_subgraph_for_class(class_name)
 
-        plt.show()
+            pos = nx.spring_layout(subG)
+            nx.draw(subG, pos, with_labels=True, node_color=[colors[n] for n in subG.nodes()])
 
+            red_patch = mpatches.Patch(color=_COLOR_CLASS, label='Class')
+            blue_patch = mpatches.Patch(color=_COLOR_FUNCTION, label='Function')
+            green_patch = mpatches.Patch(color=_COLOR_FIELD, label='Field')
+            plt.legend(handles=[red_patch, blue_patch, green_patch])
+
+            plt.title(f"Class: {class_name}")
+            plt.show()
+            
 
 def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncType) -> None:
     """主要な処理を行う関数"""
     builder = GraphBuilder()
     builder.add_nodes_and_edges(class_to_func_data)
 
+    class_names = set(class_to_func_data.keys())
+
     styler = GraphStyler(builder.G)
     colors = styler.apply_style()
 
     renderer = GraphRenderer(builder.G)
-    renderer.render(colors)
+    renderer.render(colors, class_names)
 
 
 if __name__ == "__main__":
