@@ -19,22 +19,22 @@ class GraphBuilder:
 
     def __init__(self) -> None:
         """コンストラクタ"""
-        self.G = nx.DiGraph()
+        self.graph = nx.DiGraph()
 
     def add_nodes_and_edges(self, class_to_func_data: create_dependency.ClassToFuncType) -> None:
         """ノードとエッジを追加するメソッド"""
         for class_name, func_to_attr in class_to_func_data.items():
-            self.G.add_node(class_name, color=_COLOR_CLASS)
+            self.graph.add_node(class_name, color=_COLOR_CLASS)
 
             for func_name, attrs in func_to_attr.items():
                 full_func_name = f"{func_name}"
-                self.G.add_node(full_func_name, color=_COLOR_FUNCTION)
-                self.G.add_edge(class_name, full_func_name)
+                self.graph.add_node(full_func_name, color=_COLOR_FUNCTION)
+                self.graph.add_edge(class_name, full_func_name)
 
                 for attr in attrs:
                     full_attr_name = f"{attr}"
-                    self.G.add_node(full_attr_name, color=_COLOR_FIELD)
-                    self.G.add_edge(full_func_name, full_attr_name)
+                    self.graph.add_node(full_attr_name, color=_COLOR_FIELD)
+                    self.graph.add_edge(full_func_name, full_attr_name)
 
 
 class GraphStyler:
@@ -72,8 +72,8 @@ class GraphRenderer:
 
     def render(self, colors: dict[str, str], class_names: list[str]) -> None:
         """グラフを描画するメソッド"""
-        for class_name in class_names:
-            plt.figure()
+        for idx, class_name in enumerate(class_names):
+            plt.figure(idx)  # 一意の識別番号を指定
 
             subG = self._create_subgraph_for_class(class_name)
 
@@ -86,8 +86,9 @@ class GraphRenderer:
             plt.legend(handles=[red_patch, blue_patch, green_patch])
 
             plt.title(f"Class: {class_name}")
-            plt.show()
-            
+
+        plt.show()  # すべてのウィンドウを一度に表示
+
 
 def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncType) -> None:
     """主要な処理を行う関数"""
@@ -96,10 +97,10 @@ def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncTy
 
     class_names = set(class_to_func_data.keys())
 
-    styler = GraphStyler(builder.G)
+    styler = GraphStyler(builder.graph)
     colors = styler.apply_style()
 
-    renderer = GraphRenderer(builder.G)
+    renderer = GraphRenderer(builder.graph)
     renderer.render(colors, class_names)
 
 
