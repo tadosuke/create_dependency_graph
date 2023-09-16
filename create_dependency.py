@@ -5,9 +5,12 @@ from __future__ import annotations
 import ast
 
 
-# 型エイリアス
+# [型エイリアス] 関数名と、関数内で使用しているメンバー変数
 _FuncToAttrType = dict[str, list[str]]
-ClassToFuncType = dict[str, _FuncToAttrType]
+# [型エイリアス] 未使用メンバー変数のセット
+_UnreferencedVarSetType = set[str]
+# [型エイリアス] クラス名、_FuncToAttrType、未使用メンバー変数のセット
+ClassToFuncType = dict[str, tuple[_FuncToAttrType, _UnreferencedVarSetType]]
 
 
 class _CodeReader:
@@ -26,35 +29,47 @@ class CodeAnalyzer:
     @classmethod
     def analyze_code(cls, file_path: str) -> ClassToFuncType:
         """Pythonコードを解析して、各クラスの関数とメンバー変数の関係を表す辞書を生成する。"""
-
         code = _CodeReader.read_from_file(file_path)
         tree = ast.parse(code)
-        class_relations = {}
 
+        class_relations = {}
         for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
-                class_relations[node.name] = cls._analyze_class_node(node)
+            if not isinstance(node, ast.ClassDef):
+                continue
+            class_node = node
+            class_name = class_node.name
+            class_relations[class_name] = cls._analyze_class_node(class_node)
 
         return class_relations
 
     @classmethod
-    def _analyze_class_node(cls, class_node: ast.ClassDef) -> _FuncToAttrType:
+    def _analyze_class_node(cls, class_node: ast.ClassDef) -> tuple[_FuncToAttrType, set[str]]:
         """クラスのASTノードを解析して、関数とメンバー変数の関係を表す辞書を生成する。"""
-        relations = {}
-
         member_vars = cls._get_member_vars(class_node)
+
+        # 関数とメンバー変数の関係
+        relations = cls._analyze_function_to_var_relations(class_node, member_vars)
+        # どの関数からも参照されていないメンバー変数
+        unreferenced_vars = cls._find_unreferenced_vars(relations, member_vars)
+
+        return relations, unreferenced_vars
+
+    @classmethod
+    def _analyze_function_to_var_relations(
+            cls,
+            class_node: ast.ClassDef,
+            member_vars: set[str]) -> _FuncToAttrType:
+        relations: _FuncToAttrType = {}
+
         properties = cls._get_properties(class_node)
         functions = cls._get_functions(class_node)
 
-        # 関数と属性の関係を解析
         for sub_node in ast.walk(class_node):
             if not isinstance(sub_node, ast.FunctionDef):
-                # 関数以外は除外
                 continue
 
             function_name = sub_node.name
             if function_name == '__init__':
-                # init は除外（グラフが複雑になるため）
                 continue
 
             relations[function_name] = []
@@ -65,13 +80,10 @@ class CodeAnalyzer:
 
                 attribute_name = attr_node.attr
                 if attribute_name in properties:
-                    # プロパティは除外
                     continue
                 if attribute_name in functions:
-                    # 関数は除外
                     continue
                 if attribute_name not in member_vars:
-                    # このクラスのメンバ変数でない場合は除外
                     continue
 
                 relations[function_name].append(attribute_name)
@@ -108,3 +120,11 @@ class CodeAnalyzer:
                     if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == 'self':
                         member_vars.add(target.attr)
         return member_vars
+
+    @classmethod
+    def _find_unreferenced_vars(cls, relations: _FuncToAttrType, member_vars: set[str]) -> _UnreferencedVarSetType:
+        all_referenced_vars = set()
+        for function, vars in relations.items():
+            all_referenced_vars.update(vars)
+
+        return member_vars - all_referenced_vars
