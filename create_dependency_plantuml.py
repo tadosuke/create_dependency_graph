@@ -16,7 +16,7 @@ class PlantUMLGenerator:
         plantuml_code = "@startuml\n"
 
         for class_name, relations in class_relations.items():
-            plantuml_code += f"class {class_name} {{\n"
+            plantuml_code += f"rectangle {class_name} {{\n"
 
             attributes = set()
             for _, attribute_list in relations.items():
@@ -44,7 +44,7 @@ class PlantUMLGenerator:
         """関数のPlantUMLセクションを生成する"""
         function_section = ""
         for function_name, _ in relations.items():
-            function_section += f"entity f_{function_name}\n"
+            function_section += f"() f_{function_name}\n"
         return function_section
 
     @classmethod
