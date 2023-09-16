@@ -56,6 +56,15 @@ class GraphRenderer:
         """コンストラクタ"""
         self.graph = graph
 
+    def render(self, colors: dict[str, str], class_names: list[str]) -> None:
+        """複数のグラフを描画するメソッド"""
+        for idx, class_name in enumerate(class_names):
+            subG = self._create_subgraph_for_class(class_name)
+            self._draw_single_graph(subG, colors, idx)
+            plt.title(f"Class: {class_name}")
+
+        plt.show()  # すべてのウィンドウを一度に表示
+
     def _create_subgraph_for_class(self, class_name: str) -> nx.DiGraph:
         sub_nodes = [class_name]
 
@@ -70,24 +79,21 @@ class GraphRenderer:
 
         return self.graph.subgraph(sub_nodes)
 
-    def render(self, colors: dict[str, str], class_names: list[str]) -> None:
-        """グラフを描画するメソッド"""
-        for idx, class_name in enumerate(class_names):
-            plt.figure(idx)  # 一意の識別番号を指定
+    def _draw_single_graph(self, subG: nx.DiGraph, colors: dict[str, str], figure_idx: int) -> None:
+        """単一のグラフを描画する"""
+        plt.figure(figure_idx)
 
-            subG = self._create_subgraph_for_class(class_name)
+        pos = nx.spring_layout(subG)
+        nx.draw(subG, pos, with_labels=True, node_color=[colors[n] for n in subG.nodes()])
 
-            pos = nx.spring_layout(subG)
-            nx.draw(subG, pos, with_labels=True, node_color=[colors[n] for n in subG.nodes()])
+        self._add_legend()
 
-            red_patch = mpatches.Patch(color=_COLOR_CLASS, label='Class')
-            blue_patch = mpatches.Patch(color=_COLOR_FUNCTION, label='Function')
-            green_patch = mpatches.Patch(color=_COLOR_FIELD, label='Field')
-            plt.legend(handles=[red_patch, blue_patch, green_patch])
-
-            plt.title(f"Class: {class_name}")
-
-        plt.show()  # すべてのウィンドウを一度に表示
+    def _add_legend(self) -> None:
+        """凡例を追加する."""
+        red_patch = mpatches.Patch(color=_COLOR_CLASS, label='Class')
+        blue_patch = mpatches.Patch(color=_COLOR_FUNCTION, label='Function')
+        green_patch = mpatches.Patch(color=_COLOR_FIELD, label='Field')
+        plt.legend(handles=[red_patch, blue_patch, green_patch])
 
 
 def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncType) -> None:
