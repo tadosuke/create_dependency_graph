@@ -22,26 +22,29 @@ class GraphBuilder:
         """コンストラクタ"""
         self.graph = nx.DiGraph()
 
-    def add_nodes_and_edges(self, class_to_func_data: create_dependency.ClassToFuncType) -> None:
+    def add_nodes_and_edges(
+            self,
+            class_name: str,
+            func_to_attr: dict[str, list[str]],
+            unused_vars: set[str]) -> None:
         """ノードとエッジを追加するメソッド"""
-        for class_name, (func_to_attr, unused_vars) in class_to_func_data.items():
-            self.graph.add_node(class_name, color=_COLOR_CLASS)
+        self.graph.add_node(class_name, color=_COLOR_CLASS)
 
-            # 未使用変数を追加
-            for unused_var in unused_vars:
-                full_unused_var_name = f"{unused_var}"
-                self.graph.add_node(full_unused_var_name, color=_COLOR_UNUSED)
-                self.graph.add_edge(class_name, full_unused_var_name)
+        # 未使用変数を追加
+        for unused_var in unused_vars:
+            full_unused_var_name = f"{unused_var}"
+            self.graph.add_node(full_unused_var_name, color=_COLOR_UNUSED)
+            self.graph.add_edge(class_name, full_unused_var_name)
 
-            for func_name, attrs in func_to_attr.items():
-                full_func_name = f"{func_name}"
-                self.graph.add_node(full_func_name, color=_COLOR_FUNCTION)
-                self.graph.add_edge(class_name, full_func_name)
+        for func_name, attrs in func_to_attr.items():
+            full_func_name = f"{func_name}"
+            self.graph.add_node(full_func_name, color=_COLOR_FUNCTION)
+            self.graph.add_edge(class_name, full_func_name)
 
-                for attr in attrs:
-                    full_attr_name = f"{attr}"
-                    self.graph.add_node(full_attr_name, color=_COLOR_FIELD)
-                    self.graph.add_edge(full_func_name, full_attr_name)
+            for attr in attrs:
+                full_attr_name = f"{attr}"
+                self.graph.add_node(full_attr_name, color=_COLOR_FIELD)
+                self.graph.add_edge(full_func_name, full_attr_name)
 
 
 class GraphStyler:
@@ -104,17 +107,23 @@ class GraphRenderer:
         plt.legend(handles=[red_patch, blue_patch, green_patch, gray_patch])
 
 
-def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncType) -> None:
-    """主要な処理を行う関数"""
+def _draw_single_class_graph(class_name: str, class_to_func_data: create_dependency.ClassToFuncType) -> None:
+    """単一のクラスのグラフを描画する主要な処理を行う関数"""
+    func_to_attr, unused_vars = class_to_func_data[class_name]
     builder = GraphBuilder()
-    builder.add_nodes_and_edges(class_to_func_data)
+    builder.add_nodes_and_edges(class_name, func_to_attr, unused_vars)
 
     styler = GraphStyler(builder.graph)
     colors = styler.apply_style()
 
     renderer = GraphRenderer(builder.graph)
-    class_names = list(class_to_func_data.keys())
-    renderer.render(colors, class_names)
+    renderer.render(colors, [class_name])
+
+
+def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncType) -> None:
+    """主要な処理を行う関数"""
+    for class_name in class_to_func_data.keys():
+        _draw_single_class_graph(class_name, class_to_func_data)
 
 
 if __name__ == "__main__":

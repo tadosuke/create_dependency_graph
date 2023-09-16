@@ -20,6 +20,5 @@ class MyClassB:
     def func_c(self):
         self._cls_a.func_a()
 
-    # FIXME:同名の関数が同じものとして扱われてしまう
-    # def func_b(self):
-    #     self._cls_a.func_b()
+    def func_b(self):
+        self._cls_a.func_b()
