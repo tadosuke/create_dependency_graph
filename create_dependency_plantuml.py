@@ -12,19 +12,22 @@ class PlantUMLGenerator:
 
     @classmethod
     def generate(cls, class_relations: create_dependency.ClassToFuncType) -> str:
-        """関数とメンバー変数の関係を表す辞書からPlantUML形式のコードを生成する。"""
         plantuml_code = "@startuml\n"
 
-        for class_name, relations in class_relations.items():
+        for class_name, (relations, unused_vars) in class_relations.items():
             plantuml_code += f"rectangle {class_name} {{\n"
 
             attributes = set()
             for _, attribute_list in relations.items():
                 attributes.update(attribute_list)
 
+            # 未使用の変数も含める
+            attributes.update(unused_vars)
+
             plantuml_code += cls._generate_attribute_section(attributes)
             plantuml_code += cls._generate_function_section(relations)
             plantuml_code += cls._generate_relations_section(relations)
+            plantuml_code += cls._generate_unused_vars_section(unused_vars)
 
             plantuml_code += "}\n"
 
@@ -33,15 +36,13 @@ class PlantUMLGenerator:
 
     @classmethod
     def _generate_attribute_section(cls, attributes: set[str]) -> str:
-        """属性のPlantUMLセクションを生成する"""
         attribute_section = ""
         for attribute in attributes:
-            attribute_section += f"() {attribute}\n"  # circle として表現
+            attribute_section += f"() {attribute}\n"
         return attribute_section
 
     @classmethod
     def _generate_function_section(cls, relations: dict[str, list[str]]) -> str:
-        """関数のPlantUMLセクションを生成する"""
         function_section = ""
         for function_name, _ in relations.items():
             function_section += f"() f_{function_name}\n"
@@ -49,12 +50,19 @@ class PlantUMLGenerator:
 
     @classmethod
     def _generate_relations_section(cls, relations: dict[str, list[str]]) -> str:
-        """関数と属性の関係のPlantUMLセクションを生成する"""
         relations_section = ""
         for function_name, attribute_list in relations.items():
             for attribute in attribute_list:
                 relations_section += f"f_{function_name} --> {attribute}\n"
         return relations_section
+
+    @classmethod
+    def _generate_unused_vars_section(cls, unused_vars: set[str]) -> str:
+        """未使用変数のPlantUMLセクションを生成する"""
+        unused_vars_section = ""
+        for unused_var in unused_vars:
+            unused_vars_section += f"() {unused_var} <<unused>>\n"  # <<unused>> ステレオタイプを付与
+        return unused_vars_section
 
 
 if __name__ == "__main__":

@@ -17,5 +17,9 @@ class MyClassB:
     def __init__(self):
         self._cls_a = MyClassA()
 
-    def func_a(self):
+    def func_c(self):
         self._cls_a.func_a()
+
+    # FIXME:同名の関数が同じものとして扱われてしまう
+    # def func_b(self):
+    #     self._cls_a.func_b()
