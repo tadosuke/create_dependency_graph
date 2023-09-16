@@ -4,10 +4,14 @@ import argparse
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-
 import networkx as nx
 
 import create_dependency
+
+
+_COLOR_CLASS = '#FF4040'
+_COLOR_FUNCTION = '#0080FF'
+_COLOR_FIELD = '#80FF00'
 
 
 class GraphBuilder:
@@ -20,16 +24,16 @@ class GraphBuilder:
     def add_nodes_and_edges(self, class_to_func_data: dict[str, dict[str, list[str]]]) -> None:
         """ノードとエッジを追加するメソッド"""
         for class_name, func_to_attr in class_to_func_data.items():
-            self.G.add_node(class_name, color='red')
+            self.G.add_node(class_name, color=_COLOR_CLASS)
 
             for func_name, attrs in func_to_attr.items():
                 full_func_name = f"{func_name}"
-                self.G.add_node(full_func_name, color='blue')
+                self.G.add_node(full_func_name, color=_COLOR_FUNCTION)
                 self.G.add_edge(class_name, full_func_name)
 
                 for attr in attrs:
                     full_attr_name = f"{attr}"
-                    self.G.add_node(full_attr_name, color='green')
+                    self.G.add_node(full_attr_name, color=_COLOR_FIELD)
                     self.G.add_edge(full_func_name, full_attr_name)
 
 
@@ -58,9 +62,9 @@ class GraphRenderer:
         nx.draw(self.G, pos, with_labels=True, node_color=list(colors.values()))
 
         # 凡例を追加
-        red_patch = mpatches.Patch(color='red', label='Class')
-        blue_patch = mpatches.Patch(color='blue', label='Function')
-        green_patch = mpatches.Patch(color='green', label='Field')
+        red_patch = mpatches.Patch(color=_COLOR_CLASS, label='Class')
+        blue_patch = mpatches.Patch(color=_COLOR_FUNCTION, label='Function')
+        green_patch = mpatches.Patch(color=_COLOR_FIELD, label='Field')
         plt.legend(handles=[red_patch, blue_patch, green_patch])
 
         plt.show()
