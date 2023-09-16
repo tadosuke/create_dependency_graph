@@ -43,6 +43,7 @@ class CodeAnalyzer:
 
         # プロパティ一覧を取得
         properties = CodeAnalyzer._get_properties(class_node)
+        functions = cls._get_functions(class_node)
 
         # 関数と属性の関係を解析
         for sub_node in ast.walk(class_node):
@@ -59,6 +60,8 @@ class CodeAnalyzer:
                 attribute_name = attr_node.attr
                 if attribute_name in properties:
                     continue
+                if attribute_name in functions:
+                    continue
 
                 relations[function_name].append(attribute_name)
 
@@ -74,6 +77,15 @@ class CodeAnalyzer:
                     if isinstance(decorator, ast.Name) and decorator.id == "property":
                         properties.add(sub_node.name)
         return properties
+
+    @classmethod
+    def _get_functions(cls, class_node: ast.ClassDef) -> set[str]:
+        """関数名の一覧を取得する。"""
+        functions = set()
+        for sub_node in ast.walk(class_node):
+            if isinstance(sub_node, ast.FunctionDef):
+                functions.add(sub_node.name)
+        return functions
 
 
 class PlantUMLGenerator:
