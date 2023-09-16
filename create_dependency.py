@@ -42,8 +42,8 @@ class CodeAnalyzer:
         """クラスのASTノードを解析して、関数とメンバー変数の関係を表す辞書を生成する。"""
         relations = {}
 
-        # プロパティ一覧を取得
-        properties = CodeAnalyzer._get_properties(class_node)
+        member_vars = cls._get_member_vars(class_node)
+        properties = cls._get_properties(class_node)
         functions = cls._get_functions(class_node)
 
         # 関数と属性の関係を解析
@@ -70,6 +70,9 @@ class CodeAnalyzer:
                 if attribute_name in functions:
                     # 関数は除外
                     continue
+                if attribute_name not in member_vars:
+                    # このクラスのメンバ変数でない場合は除外
+                    continue
 
                 relations[function_name].append(attribute_name)
 
@@ -94,3 +97,14 @@ class CodeAnalyzer:
             if isinstance(sub_node, ast.FunctionDef):
                 functions.add(sub_node.name)
         return functions
+
+    @classmethod
+    def _get_member_vars(cls, class_node: ast.ClassDef) -> set[str]:
+        """メンバ変数の一覧を取得する。"""
+        member_vars = set()
+        for sub_node in ast.walk(class_node):
+            if isinstance(sub_node, ast.Assign):
+                for target in sub_node.targets:
+                    if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == 'self':
+                        member_vars.add(target.attr)
+        return member_vars
