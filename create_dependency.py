@@ -49,9 +49,14 @@ class CodeAnalyzer:
         # 関数と属性の関係を解析
         for sub_node in ast.walk(class_node):
             if not isinstance(sub_node, ast.FunctionDef):
+                # 関数以外は除外
                 continue
 
             function_name = sub_node.name
+            if function_name == '__init__':
+                # init は除外（グラフが複雑になるため）
+                continue
+
             relations[function_name] = []
 
             for attr_node in ast.walk(sub_node):
@@ -60,8 +65,10 @@ class CodeAnalyzer:
 
                 attribute_name = attr_node.attr
                 if attribute_name in properties:
+                    # プロパティは除外
                     continue
                 if attribute_name in functions:
+                    # 関数は除外
                     continue
 
                 relations[function_name].append(attribute_name)
