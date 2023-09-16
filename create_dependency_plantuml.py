@@ -6,6 +6,11 @@ import ast
 import argparse
 
 
+# 型エイリアス
+FuncToAttrType = dict[str, list[str]]
+ClassToFuncType = dict[str, FuncToAttrType]
+
+
 class CodeReader:
     """Pythonコードをファイルから読み込むクラス。"""
 
@@ -20,7 +25,7 @@ class CodeAnalyzer:
     """Pythonコードを解析するクラス。"""
 
     @classmethod
-    def analyze_code(cls, code: str) -> dict[str, dict[str, list[str]]]:
+    def analyze_code(cls, code: str) -> ClassToFuncType:
         """Pythonコードを解析して、各クラスの関数とメンバー変数の関係を表す辞書を生成する。"""
         tree = ast.parse(code)
         class_relations = {}
@@ -32,7 +37,7 @@ class CodeAnalyzer:
         return class_relations
 
     @classmethod
-    def _analyze_class_node(cls, class_node: ast.ClassDef) -> dict[str, list[str]]:
+    def _analyze_class_node(cls, class_node: ast.ClassDef) -> FuncToAttrType:
         """クラスのASTノードを解析して、関数とメンバー変数の関係を表す辞書を生成する。"""
         relations = {}
 
@@ -75,7 +80,7 @@ class PlantUMLGenerator:
     """PlantUML形式のコードを生成するクラス。"""
 
     @classmethod
-    def generate(cls, class_relations: dict[str, dict[str, list[str]]]) -> str:
+    def generate(cls, class_relations: ClassToFuncType) -> str:
         """関数とメンバー変数の関係を表す辞書からPlantUML形式のコードを生成する。"""
         plantuml_code = "@startuml\n"
 
