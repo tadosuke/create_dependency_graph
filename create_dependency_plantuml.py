@@ -41,16 +41,21 @@ class CodeAnalyzer:
 
         # 関数と属性の関係を解析
         for sub_node in ast.walk(class_node):
-            if isinstance(sub_node, ast.FunctionDef):
-                function_name = sub_node.name
-                relations[function_name] = []
+            if not isinstance(sub_node, ast.FunctionDef):
+                continue
 
-                for attr_node in ast.walk(sub_node):
-                    if isinstance(attr_node, ast.Attribute):
-                        attribute_name = attr_node.attr
+            function_name = sub_node.name
+            relations[function_name] = []
 
-                        if attribute_name not in properties:
-                            relations[function_name].append(attribute_name)
+            for attr_node in ast.walk(sub_node):
+                if not isinstance(attr_node, ast.Attribute):
+                    continue
+
+                attribute_name = attr_node.attr
+                if attribute_name in properties:
+                    continue
+
+                relations[function_name].append(attribute_name)
 
         return relations
 
