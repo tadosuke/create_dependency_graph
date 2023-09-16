@@ -3,6 +3,8 @@
 import argparse
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
 import networkx as nx
 
 import create_dependency
@@ -21,12 +23,12 @@ class GraphBuilder:
             self.G.add_node(class_name, color='red')
 
             for func_name, attrs in func_to_attr.items():
-                full_func_name = f"{class_name}.{func_name}"
+                full_func_name = f"{func_name}"
                 self.G.add_node(full_func_name, color='blue')
                 self.G.add_edge(class_name, full_func_name)
 
                 for attr in attrs:
-                    full_attr_name = f"{class_name}.{attr}"
+                    full_attr_name = f"{attr}"
                     self.G.add_node(full_attr_name, color='green')
                     self.G.add_edge(full_func_name, full_attr_name)
 
@@ -54,6 +56,13 @@ class GraphRenderer:
         """グラフを描画するメソッド"""
         pos = nx.spring_layout(self.G)
         nx.draw(self.G, pos, with_labels=True, node_color=list(colors.values()))
+
+        # 凡例を追加
+        red_patch = mpatches.Patch(color='red', label='Class')
+        blue_patch = mpatches.Patch(color='blue', label='Function')
+        green_patch = mpatches.Patch(color='green', label='Field')
+        plt.legend(handles=[red_patch, blue_patch, green_patch])
+
         plt.show()
 
 
