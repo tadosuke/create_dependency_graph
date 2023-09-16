@@ -13,8 +13,11 @@ import create_dependency
 
 
 class PlantUMLGenerator:
+    """PlantUML形式の全体のフレームを生成するクラス。"""
+
     @classmethod
     def generate(cls, class_relations: create_dependency.ClassToFuncType) -> str:
+        """PlantUML形式のコードを生成する。"""
         plantuml_code = "@startuml\n"
         for class_name, (relations, unused_vars) in class_relations.items():
             plantuml_code += f"rectangle {class_name} {{\n"
@@ -28,8 +31,11 @@ class PlantUMLGenerator:
 
 
 class _AttributeSectionGenerator:
+    """属性部分のPlantUMLコードを生成するクラス。"""
+
     @classmethod
     def generate(cls, relations: dict[str, list[str]], unused_vars: set[str]) -> str:
+        """属性部分のPlantUMLコードを生成する。"""
         attributes = set()
         for _, attribute_list in relations.items():
             attributes.update(attribute_list)
@@ -41,8 +47,11 @@ class _AttributeSectionGenerator:
 
 
 class _FunctionSectionGenerator:
+    """関数部分のPlantUMLコードを生成するクラス。"""
+
     @classmethod
     def generate(cls, relations: dict[str, list[str]]) -> str:
+        """関数部分のPlantUMLコードを生成する。"""
         function_section = ""
         for function_name, _ in relations.items():
             function_section += f"() f_{function_name}\n"
@@ -50,8 +59,11 @@ class _FunctionSectionGenerator:
 
 
 class _RelationsSectionGenerator:
+    """関係性を示すPlantUMLコードを生成するクラス。"""
+
     @classmethod
     def generate(cls, relations: dict[str, list[str]]) -> str:
+        """関係性を示すPlantUMLコードを生成する。"""
         relations_section = ""
         for function_name, attribute_list in relations.items():
             for attribute in attribute_list:
@@ -60,8 +72,11 @@ class _RelationsSectionGenerator:
 
 
 class _UnusedVarsSectionGenerator:
+    """未使用変数部分のPlantUMLコードを生成するクラス。"""
+
     @classmethod
     def generate(cls, unused_vars: set[str]) -> str:
+        """未使用変数部分のPlantUMLコードを生成する。"""
         unused_vars_section = ""
         for unused_var in unused_vars:
             unused_vars_section += f"() {unused_var} <<unused>>\n"
