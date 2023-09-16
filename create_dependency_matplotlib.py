@@ -101,12 +101,11 @@ def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncTy
     builder = GraphBuilder()
     builder.add_nodes_and_edges(class_to_func_data)
 
-    class_names = set(class_to_func_data.keys())
-
     styler = GraphStyler(builder.graph)
     colors = styler.apply_style()
 
     renderer = GraphRenderer(builder.graph)
+    class_names = list(class_to_func_data.keys())
     renderer.render(colors, class_names)
 
 
