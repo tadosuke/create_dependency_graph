@@ -21,7 +21,7 @@ class GraphBuilder:
         """コンストラクタ"""
         self.G = nx.DiGraph()
 
-    def add_nodes_and_edges(self, class_to_func_data: dict[str, dict[str, list[str]]]) -> None:
+    def add_nodes_and_edges(self, class_to_func_data: create_dependency.ClassToFuncType) -> None:
         """ノードとエッジを追加するメソッド"""
         for class_name, func_to_attr in class_to_func_data.items():
             self.G.add_node(class_name, color=_COLOR_CLASS)
@@ -70,7 +70,7 @@ class GraphRenderer:
         plt.show()
 
 
-def draw_class_to_func_graph(class_to_func_data: dict[str, dict[str, list[str]]]) -> None:
+def draw_class_to_func_graph(class_to_func_data: create_dependency.ClassToFuncType) -> None:
     """主要な処理を行う関数"""
     builder = GraphBuilder()
     builder.add_nodes_and_edges(class_to_func_data)
